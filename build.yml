@@ -1,0 +1,47 @@
+name: Build CPSGuard
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout CPSGuard
+        uses: actions/checkout@v4
+
+      - name: Install build tools and LLVM 21
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget ca-certificates cmake ninja-build git
+          wget -q https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo apt-get install -y clang-21 libc++-21-dev libc++abi-21-dev
+
+      - name: Configure
+        env:
+          CC: clang-21
+          CXX: clang++-21
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang-21 \
+            -DCMAKE_CXX_COMPILER=clang++-21
+
+      - name: Build
+        run: cmake --build build --target cpsguard -j2
+
+      - name: Locate plugin
+        run: |
+          find build -type f -name 'endstone_cpsguard.so' -print
+
+      - name: Upload CPSGuard
+        uses: actions/upload-artifact@v4
+        with:
+          name: endstone_cpsguard
+          path: build/**/endstone_cpsguard.so
+          if-no-files-found: error
