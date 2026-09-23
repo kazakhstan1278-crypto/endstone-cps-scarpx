@@ -23,7 +23,7 @@ else()
     FetchContent_MakeAvailable(endstone)
 endif()
 
-endstone_add_plugin(${PROJECT_NAME} src/plugin.cpp)
+endstone_add_plugin(cpsguard plugin.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/include")
 
 if(UNIX AND NOT APPLE)
